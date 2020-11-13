@@ -1,9 +1,9 @@
 #include <iostream>
 
-#include "HowTo-Hemorrhage.h"
+#include "HowTo-Hemorrhage_Treatment.h"
 
 
 int main( int argc, char* argv[] )
 {
-  HowToHemorrhage();
+  HowToHemorrhageTreatment();
 }
