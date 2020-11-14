@@ -61,31 +61,44 @@ void HowToHemorrhageTreatment()
 
   bg->GetEngineTrack()->GetDataRequestManager().SetResultsFilename("HowToHemorrhageTreatment.csv");
 
+  bg->GetLogger()->Info("finished creating data requests");
   
   std::string hemorrageLocation;
   int hemorrageRate;
 
-  std::cout << "Please type the location of the hemorrhage as: leftleg, spleen, or aorta. Followed by the rate of the bleed (assuming units of mL/min), ex. leftleg 150 " << std::endl;
-  std::cin >> hemorrageLocation >> hemorrageRate;
+  std::cout << "Please type the location of the hemorrhage as: leftleg, Spleen, or Aorta " << std::endl;
+  std::cin >> hemorrageLocation;
+  std::cout << "Please type the rate of the bleed (assuming units of mL/min),  150" << std::endl;
+  std::cin >> hemorrageRate;
 
   //Create variables for scenario
   SEHemorrhage hem; //hemorrhage object
   hem.GetInitialRate().SetValue(hemorrageRate, VolumePerTimeUnit::mL_Per_min);
   //Process update to hemorrhage action
   hem.SetCompartment(hemorrageLocation);
+  bg->GetLogger()->Info("initialized hemorrhage");
   bg->ProcessAction(hem);
   
+
   int action;
   bool simulation = true;
   double rate;
   double concentration;
   SESubstance* vas = bg->GetSubstanceManager().GetSubstance("Vasopressin");
   SESubstanceBolus bolus(*vas);
-  SESubstanceCompoundInfusion* saline = nullptr;
+  SESubstanceCompound* saline = bg->GetSubstanceManager().GetCompound("Saline");
+  SESubstanceCompoundInfusion* salineInfusion = new SESubstanceCompoundInfusion(*saline);
+  salineInfusion->GetBagVolume().SetValue(500, VolumeUnit::mL);
 
-  
+  std::mutex m_mutex;
+  bg->AdvanceModelTime(1.0, TimeUnit::s);
+  bg->GetEngineTrack()->TrackData(bg->GetSimulationTime(TimeUnit::s));
+  bg->GetLogger()->Info("Begin looping");
+
   do {
-    bg->GetLogger()->Info("Enter Integer for Action to Perform : \n\t[1] Status \n\t[2] IVFluids \n\t[3] tourniquet \n\t[4] Vasopressin Admin \n\t[5] Quit \n");
+    bg->AdvanceModelTime(1.0, TimeUnit::s);
+    bg->GetEngineTrack()->TrackData(bg->GetSimulationTime(TimeUnit::s));
+    bg->GetLogger()->Info("Enter Integer for Action to Perform : \n\t[1] Status \n\t[2] IVFluids \n\t[3] tourniquet \n\t[4] Vasopressin Admin \n\t[5] Advance time 2 min \n\t[6] Quit \n");
     std::cin >> action;
     switch (action) {
     case 1:
@@ -96,10 +109,10 @@ void HowToHemorrhageTreatment()
       bg->GetLogger()->Info(std::stringstream() << "Heart Rate : " << bg->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min) << "bpm");
       break;
     case 2:
-      bg->GetLogger()->Info("Enter IV Fluids Rate in mL/min (bag volume is 500 mL), followed by ENTER : ");
+      bg->GetLogger()->Info("Enter IV Saline Fluids Rate in mL/min (bag volume is 500 mL), followed by ENTER : ");
       std::cin >> rate;
-      saline->GetRate().SetValue(rate, VolumePerTimeUnit::mL_Per_min);
-      bg->ProcessAction(*saline);
+      salineInfusion->GetRate().SetValue(rate, VolumePerTimeUnit::mL_Per_min);
+      bg->ProcessAction(*salineInfusion);
       break;
     case 3:
       bg->GetLogger()->Info("Administering tourniquet");
@@ -113,12 +126,15 @@ void HowToHemorrhageTreatment()
       bolus.SetAdminRoute(CDM::enumBolusAdministration::Intravenous);
       break;
     case 5:
+      bg->GetLogger()->Info("Advancing time by 2 minutes");
+      bg->AdvanceModelTime(2.0, TimeUnit::min);
+      bg->GetEngineTrack()->TrackData(bg->GetSimulationTime(TimeUnit::s));
+      break;
+    case 6:
       simulation = false;
       break;
       }
-    bg->AdvanceModelTime(1.0, TimeUnit::s);
-    bg->GetEngineTrack()->TrackData(bg->GetSimulationTime(TimeUnit::s));
-    }  while(simulation);
+    } while(simulation);
   
   bg->GetLogger()->Info("Finished");
 
