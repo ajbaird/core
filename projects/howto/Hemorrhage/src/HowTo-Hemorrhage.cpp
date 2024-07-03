@@ -42,11 +42,47 @@ int HowToHemorrhage()
 {
   // Create the engine and load the patient
   std::unique_ptr<PhysiologyEngine> bg = CreateBioGearsEngine("HowToHemorrhage.log");
-  bg->GetLogger()->Info("HowToHemorrhage");
-  if (!bg->LoadState("./states/StandardMale@0s.xml")) {
-    bg->GetLogger()->Error("Could not load state, check the error");
+  //if (!bg->LoadState("./states/StandardMale@0s.xml")) {
+  //  bg->GetLogger()->Error("Could not load state, check the error");
+  //  return 1;
+  //}
+
+  if (!bg->InitializeEngine("patients/StandardMale.xml")) {
+    bg->GetLogger()->Error("Could not load patient, check the error");
     return 1;
   }
+  int choice = 1;
+  //bg->AdvanceModelTime(1, TimeUnit::s);
+
+    //Create variables for scenario
+  SEHemorrhage hemorrhageSpleen; //hemorrhage object
+  std::string location; //location of hemorrhage, valid options are "Aorta", "VenaCava", "Brain", "Myocardium", "LeftLung", "RightLung", "Spleen", "Splanchnic", "SmallIntestine", "LargeIntestine", "LeftKidney", "RightKidney", "Liver", "LeftArm", "RightArm", "LeftLeg", "RightLeg"
+  double rate_mL_Per_min = 150.0; //the initial bleeding rate of the hemorrhage
+  std::vector<unsigned int> mcisCode; //injury code if using option 2, see ParseMCIS method below for more details
+  //Let's create an internal hemorrhage in the spleen (maybe it ruptured...)
+  switch (choice) {
+  case 1:
+    location = "LeftLeg";
+    hemorrhageSpleen.SetCompartment(location);
+    hemorrhageSpleen.GetInitialRate().SetValue(rate_mL_Per_min, VolumePerTimeUnit::mL_Per_min);
+    hemorrhageSpleen.SetMCIS();
+    break;
+  case 2:
+    mcisCode = { 4, 2, 8, 2, 0 }; //This injury code is a high severity hemorrhage in the spleen
+    ParseMCIS(hemorrhageSpleen, mcisCode);
+    break;
+  }
+
+    // Hemorrhage Starts - instantiate a hemorrhage action and have the engine process it.  Note that BioGears will output the injury code regardless of which method was used
+  bg->ProcessAction(hemorrhageSpleen);
+
+  // Advance some time to let the body bleed out a bit
+  bg->AdvanceModelTime(300, TimeUnit::s);
+
+  //if (!bg->InitializeEngine("patients/StandardMale.xml")) {
+  //  bg->GetLogger()->Error("Could not load patient, check the error");
+  //  return 1;
+  //}
 
   // The tracker is responsible for advancing the engine time and outputting the data requests below at each time step
 
@@ -72,37 +108,37 @@ int HowToHemorrhage()
   bg->GetLogger()->Info(asprintf("Diastolic Pressure : %f %s", bg->GetCardiovascularSystem()->GetDiastolicArterialPressure(PressureUnit::mmHg), "mmHg"));
   bg->GetLogger()->Info(asprintf("Heart Rate : %f %s", bg->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min), "bpm"));
 
-  return 0;
+ // return 0;
 
   //We are going to create a hemorrhage in two different ways.  One way will be to specify the location and a severity on a scale of 0-1.
   //The other way will be to parse an injury code and derive the location and severity
-  //Set the choice variable below either to 1 to run with location/severity or to 2 to run with injury code
-  int choice = 1;
+  ////Set the choice variable below either to 1 to run with location/severity or to 2 to run with injury code
+  //int choice = 1;
 
-  //Create variables for scenario
-  SEHemorrhage hemorrhageSpleen; //hemorrhage object
-  std::string location; //location of hemorrhage, valid options are "Aorta", "VenaCava", "Brain", "Myocardium", "LeftLung", "RightLung", "Spleen", "Splanchnic", "SmallIntestine", "LargeIntestine", "LeftKidney", "RightKidney", "Liver", "LeftArm", "RightArm", "LeftLeg", "RightLeg"
-  double rate_mL_Per_min = 150.0; //the initial bleeding rate of the hemorrhage
-  std::vector<unsigned int> mcisCode; //injury code if using option 2, see ParseMCIS method below for more details
-  //Let's create an internal hemorrhage in the spleen (maybe it ruptured...)
-  switch (choice) {
-  case 1:
-    location = "Spleen";
-    hemorrhageSpleen.SetCompartment(location);
-    hemorrhageSpleen.GetInitialRate().SetValue(rate_mL_Per_min, VolumePerTimeUnit::mL_Per_min);
-    hemorrhageSpleen.SetMCIS();
-    break;
-  case 2:
-    mcisCode = { 4, 2, 8, 2, 0 }; //This injury code is a high severity hemorrhage in the spleen
-    ParseMCIS(hemorrhageSpleen, mcisCode);
-    break;
-  }
+  ////Create variables for scenario
+  //SEHemorrhage hemorrhageSpleen; //hemorrhage object
+  //std::string location; //location of hemorrhage, valid options are "Aorta", "VenaCava", "Brain", "Myocardium", "LeftLung", "RightLung", "Spleen", "Splanchnic", "SmallIntestine", "LargeIntestine", "LeftKidney", "RightKidney", "Liver", "LeftArm", "RightArm", "LeftLeg", "RightLeg"
+  //double rate_mL_Per_min = 150.0; //the initial bleeding rate of the hemorrhage
+  //std::vector<unsigned int> mcisCode; //injury code if using option 2, see ParseMCIS method below for more details
+  ////Let's create an internal hemorrhage in the spleen (maybe it ruptured...)
+  //switch (choice) {
+  //case 1:
+  //  location = "Spleen";
+  //  hemorrhageSpleen.SetCompartment(location);
+  //  hemorrhageSpleen.GetInitialRate().SetValue(rate_mL_Per_min, VolumePerTimeUnit::mL_Per_min);
+  //  hemorrhageSpleen.SetMCIS();
+  //  break;
+  //case 2:
+  //  mcisCode = { 4, 2, 8, 2, 0 }; //This injury code is a high severity hemorrhage in the spleen
+  //  ParseMCIS(hemorrhageSpleen, mcisCode);
+  //  break;
+  //}
 
-  // Hemorrhage Starts - instantiate a hemorrhage action and have the engine process it.  Note that BioGears will output the injury code regardless of which method was used
-  bg->ProcessAction(hemorrhageSpleen);
+  //// Hemorrhage Starts - instantiate a hemorrhage action and have the engine process it.  Note that BioGears will output the injury code regardless of which method was used
+  //bg->ProcessAction(hemorrhageSpleen);
 
-  // Advance some time to let the body bleed out a bit
-  bg->AdvanceModelTime(300, TimeUnit::s);
+  //// Advance some time to let the body bleed out a bit
+  //bg->AdvanceModelTime(300, TimeUnit::s);
 
   bg->GetLogger()->Info("The patient has been hemorrhaging for 300s");
   bg->GetLogger()->Info(asprintf("Cardiac Output : %f %s", bg->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min), "mL_Per_min"));

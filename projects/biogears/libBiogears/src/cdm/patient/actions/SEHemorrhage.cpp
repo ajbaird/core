@@ -20,13 +20,13 @@ namespace biogears {
 SEHemorrhage::SEHemorrhage()
   : SEPatientAction()
   , m_InitialRate(new SEScalarVolumePerTime())
-  , m_BleedResistance(nullptr)
-
+  , m_BleedResistance(new SEScalarFlowResistance())
 {
+  //m_BleedResistance = nullptr;
   m_Compartment = ""; //User input, location of hemorrhage
   //m_MCIS;
   m_InitialRate->SetValue(0.0, biogears::VolumePerTimeUnit::mL_Per_min); //User input, initial rate of bleeding
-
+  m_BleedResistance->SetValue(100000.00, biogears::FlowResistanceUnit::cmH2O_s_Per_L);
   //Place compartments in torso in a map so that we don't get too messy with nested conditionals.  Each vector is digits 2-4 of the MCIS code
   m_OrganMap["VenaCava"] = std::vector<unsigned int> { 6, 6, 0 };
   m_OrganMap["LeftLung"] = std::vector<unsigned int> { 7, 1, 0 };
@@ -187,7 +187,7 @@ SEScalarVolumePerTime const & SEHemorrhage::GetInitialRate() const
 //-----------------------------------------------------------------------------
 bool SEHemorrhage::HasBleedResistance() const
 {
-  return m_BleedResistance == nullptr ? false : true;
+  return m_BleedResistance->GetValue(biogears::FlowResistanceUnit::cmH2O_s_Per_L) == 100000.00 ? false : true;
 }
 //-----------------------------------------------------------------------------
 SEScalarFlowResistance& SEHemorrhage::GetBleedResistance()
