@@ -90,7 +90,7 @@ void SEDecimalFormat::SetStream(std::ofstream& s)
 #ifndef ANDROID
       << std::defaultfloat
 #endif
-      << std::setprecision(m_Precision);
+      << std::fixed << std::setprecision(m_Precision);
     break;
   case DecimalNotation::Fixed:
     s << std::fixed << std::setprecision(m_Precision);
