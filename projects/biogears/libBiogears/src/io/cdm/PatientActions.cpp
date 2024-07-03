@@ -103,23 +103,30 @@
     return std::move(typeName);                                                                    \
   }
 
+#define STOCASTIC_POLYMORPHIC_UNMARSHALL(paramName, typeName, schema, engine)                      \
+  if (auto typeName##Data = dynamic_cast<CDM::typeName##Data const*>(paramName); typeName##Data) { \
+    auto typeName = std::make_unique<SE##typeName>();                                              \
+    schema::UnMarshall(*typeName##Data, *typeName, engine);                                        \
+    return std::move(typeName);                                                                    \
+  }
+
 namespace biogears {
 namespace io {
   // class SEActionList
-  std::vector<std::unique_ptr<SEAction>> PatientActions::action_factory(const CDM::ActionListData& in, SESubstanceManager& substances)
+  std::vector<std::unique_ptr<SEAction>> PatientActions::action_factory(const CDM::ActionListData& in, SESubstanceManager& substances, std::default_random_engine* rd)
   {
     std::vector<std::unique_ptr<SEAction>> r_vec;
     for (auto action_data : in.Action()) {
-      r_vec.emplace_back(factory(&action_data, substances));
+      r_vec.emplace_back(factory(&action_data, substances, rd));
     }
     return std::move(r_vec);
   }
 
-  std::unique_ptr<SEAction> PatientActions::factory(CDM::ActionData const* actionData, SESubstanceManager& substances)
+  std::unique_ptr<SEAction> PatientActions::factory(CDM::ActionData const* actionData, SESubstanceManager& substances, std::default_random_engine* rd)
   {
     if (auto advData = dynamic_cast<CDM::AdvanceTimeData const*>(actionData); advData) {
       auto advanceTime = std::make_unique<SEAdvanceTime>();
-      Actions::UnMarshall(*advData, *advanceTime);
+      Actions::UnMarshall(*advData, *advanceTime, rd);
       return advanceTime;
     }
 
@@ -143,41 +150,43 @@ namespace io {
     }
 
     if (auto patientActionData = dynamic_cast<CDM::PatientActionData const*>(actionData); patientActionData) {
-      POLYMORPHIC_UNMARSHALL(patientActionData, PatientAssessmentRequest, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, AcuteStress, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, ExampleAction, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, AirwayObstruction, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Apnea, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, BrainInjury, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, BurnWound, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Escharotomy, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Bronchoconstriction, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, CardiacArrest, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, AsthmaAttack, PatientActions)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, PatientAssessmentRequest, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, AcuteStress, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, ExampleAction, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, AirwayObstruction, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Apnea, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, BrainInjury, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, BurnWound, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Escharotomy, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Bronchoconstriction, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, CardiacArrest, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, AsthmaAttack, PatientActions, rd)
 
       if (auto chestCompressionData = dynamic_cast<CDM::ChestCompressionData const*>(actionData); chestCompressionData) {
-        POLYMORPHIC_UNMARSHALL(chestCompressionData, ChestCompressionForce, PatientActions)
-        POLYMORPHIC_UNMARSHALL(chestCompressionData, ChestCompressionForceScale, PatientActions)
+        STOCASTIC_POLYMORPHIC_UNMARSHALL(chestCompressionData, ChestCompressionForce, PatientActions, rd)
+        STOCASTIC_POLYMORPHIC_UNMARSHALL(chestCompressionData, ChestCompressionForceScale, PatientActions, rd)
       }
 
-      POLYMORPHIC_UNMARSHALL(patientActionData, ChestOcclusiveDressing, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, ConsciousRespiration, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, ConsumeNutrients, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Ebola, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Ebola, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Intubation, PatientActions)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, ChestOcclusiveDressing, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, ConsciousRespiration, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, ConsumeNutrients, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Ebola, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Ebola, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Intubation, PatientActions, rd)
+
       POLYMORPHIC_UNMARSHALL(patientActionData, MechanicalVentilation, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, NasalCannula, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, NeedleDecompression, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Override, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Hemorrhage, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, PainStimulus, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, PericardialEffusion, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Infection, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, TensionPneumothorax, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, Tourniquet, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, PulmonaryShunt, PatientActions)
-      POLYMORPHIC_UNMARSHALL(patientActionData, RadiationAbsorbedDose, PatientActions)
+
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, NasalCannula, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, NeedleDecompression, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Override, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Hemorrhage, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, PainStimulus, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, PericardialEffusion, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Infection, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, TensionPneumothorax, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Tourniquet, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, PulmonaryShunt, PatientActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, RadiationAbsorbedDose, PatientActions, rd)
 
       if (auto substanceBolusData = dynamic_cast<CDM::SubstanceBolusData const*>(actionData); substanceBolusData) {
         auto substance = substances.GetSubstance(substanceBolusData->Substance());
@@ -185,7 +194,7 @@ namespace io {
           throw biogears::CommonDataModelException("PatientActions:Factory - Unknown substance : " + substanceBolusData->Substance());
         }
         auto substanceBolusaction = std::make_unique<SESubstanceBolus>(*substance);
-        PatientActions::UnMarshall(*substanceBolusData, *substanceBolusaction);
+        PatientActions::UnMarshall(*substanceBolusData, *substanceBolusaction, rd);
         return substanceBolusaction;
       }
 
@@ -195,7 +204,7 @@ namespace io {
           throw biogears::CommonDataModelException("PatientActions:Factory - Unknown substance : " + substanceOralDoseData->Substance());
         }
         auto od = std::make_unique<SESubstanceOralDose>(*substance);
-        PatientActions::UnMarshall(*substanceOralDoseData, *od);
+        PatientActions::UnMarshall(*substanceOralDoseData, *od, rd);
         return od;
       }
 
@@ -205,7 +214,7 @@ namespace io {
           throw biogears::CommonDataModelException("PatientActions:Factory - Unknown substance : " + substanceNasalDoseData->Substance());
         }
         auto substanceNasalDoseAction = std::make_unique<SESubstanceNasalDose>(*substance);
-        PatientActions::UnMarshall(*substanceNasalDoseData, *substanceNasalDoseAction);
+        PatientActions::UnMarshall(*substanceNasalDoseData, *substanceNasalDoseAction, rd);
         return substanceNasalDoseAction;
       }
 
@@ -215,7 +224,7 @@ namespace io {
           throw biogears::CommonDataModelException("PatientActions:Factory - Unknown substance : " + substanceInfusionData->Substance());
         }
         auto substanceInfusionAction = std::make_unique<SESubstanceInfusion>(*substance);
-        PatientActions::UnMarshall(*substanceInfusionData, *substanceInfusionAction);
+        PatientActions::UnMarshall(*substanceInfusionData, *substanceInfusionAction, rd);
         return substanceInfusionAction;
       }
 
@@ -225,11 +234,11 @@ namespace io {
           throw biogears::CommonDataModelException("PatientActions:Factory - Unknown substance : " + substanceCompoundInfusionData->SubstanceCompound());
         }
         auto substanceCompoundInfusionAction = std::make_unique<SESubstanceCompoundInfusion>(*compound);
-        PatientActions::UnMarshall(*substanceCompoundInfusionData, *substanceCompoundInfusionAction);
+        PatientActions::UnMarshall(*substanceCompoundInfusionData, *substanceCompoundInfusionAction, rd);
         return substanceCompoundInfusionAction;
       }
 
-      POLYMORPHIC_UNMARSHALL(patientActionData, Urinate, PatientActions)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(patientActionData, Urinate, PatientActions, rd)
       throw biogears::CommonDataModelException("PatientActions:Factory - Unsupported Patient Action Received.");
     }
 
@@ -237,22 +246,22 @@ namespace io {
 
       if (auto AnesthesiaMachineConfigurationData = dynamic_cast<CDM::AnesthesiaMachineConfigurationData const*>(anesthesiaMachineActionData); AnesthesiaMachineConfigurationData) {
         auto AnesthesiaMachineConfiguration = std::make_unique<SEAnesthesiaMachineConfiguration>(substances);
-        AnesthesiaActions::UnMarshall(*AnesthesiaMachineConfigurationData, *AnesthesiaMachineConfiguration);
+        AnesthesiaActions::UnMarshall(*AnesthesiaMachineConfigurationData, *AnesthesiaMachineConfiguration, rd);
         return std::move(AnesthesiaMachineConfiguration);
       }
 
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, OxygenWallPortPressureLoss, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, OxygenTankPressureLoss, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, ExpiratoryValveLeak, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, ExpiratoryValveObstruction, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, InspiratoryValveLeak, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, InspiratoryValveObstruction, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, MaskLeak, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, SodaLimeFailure, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, TubeCuffLeak, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, VaporizerFailure, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, VentilatorPressureLoss, AnesthesiaActions)
-      POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, YPieceDisconnect, AnesthesiaActions)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, OxygenWallPortPressureLoss, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, OxygenTankPressureLoss, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, ExpiratoryValveLeak, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, ExpiratoryValveObstruction, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, InspiratoryValveLeak, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, InspiratoryValveObstruction, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, MaskLeak, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, SodaLimeFailure, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, TubeCuffLeak, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, VaporizerFailure, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, VentilatorPressureLoss, AnesthesiaActions, rd)
+      STOCASTIC_POLYMORPHIC_UNMARSHALL(anesthesiaMachineActionData, YPieceDisconnect, AnesthesiaActions, rd)
       throw biogears::CommonDataModelException("PatientActions:Factory - Unsupported Anesthesia Machine Action Received.");
     }
 
@@ -339,7 +348,7 @@ namespace io {
   void PatientActions::Marshall(const SEPatientAssessmentRequest& in, CDM::PatientAssessmentRequestData& out)
   {
     PatientActions::Marshall(static_cast<const SEPatientAction&>(in), static_cast<CDM::PatientActionData&>(out));
-    SE_PATIENT_ACTIONS_ENUM_MARSHALL_HELPER(in,out,Type)
+    SE_PATIENT_ACTIONS_ENUM_MARSHALL_HELPER(in, out, Type)
   }
   // class SEAcuteRespiratoryDistressStress;
   void PatientActions::UnMarshall(const CDM::AcuteRespiratoryDistressData& in, SEAcuteRespiratoryDistress& out, std::default_random_engine* rd)
@@ -1617,23 +1626,23 @@ namespace io {
   // SEBrainInjuryType
   void PatientActions::UnMarshall(const CDM::enumBrainInjuryType& in, SEBrainInjuryType& out)
   {
-    try{
+    try {
       switch (in) {
-        case CDM::enumBrainInjuryType::Diffuse:
-          out = SEBrainInjuryType::Diffuse;
-          break;
-        case CDM::enumBrainInjuryType::LeftFocal:
-          out = SEBrainInjuryType::LeftFocal;
-          break;
-        case CDM::enumBrainInjuryType::RightFocal:
-          out = SEBrainInjuryType::RightFocal;
-          break;
-        default:
-          out = SEBrainInjuryType::Invalid;
-          break;
-      }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+      case CDM::enumBrainInjuryType::Diffuse:
+        out = SEBrainInjuryType::Diffuse;
+        break;
+      case CDM::enumBrainInjuryType::LeftFocal:
+        out = SEBrainInjuryType::LeftFocal;
+        break;
+      case CDM::enumBrainInjuryType::RightFocal:
+        out = SEBrainInjuryType::RightFocal;
+        break;
+      default:
         out = SEBrainInjuryType::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SEBrainInjuryType::Invalid;
     }
   }
   void PatientActions::Marshall(const SEBrainInjuryType& in, CDM::enumBrainInjuryType& out)
@@ -1649,30 +1658,30 @@ namespace io {
       out = CDM::enumBrainInjuryType::RightFocal;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }
   // SEBolusAdministration
   void PatientActions::UnMarshall(const CDM::enumBolusAdministration& in, SEBolusAdministration& out)
   {
-    try{
+    try {
       switch (in) {
-        case CDM::enumBolusAdministration::Intraarterial:
-          out = SEBolusAdministration::Intraarterial;
-          break;
-        case CDM::enumBolusAdministration::Intramuscular:
-          out = SEBolusAdministration::Intramuscular;
-          break;
-        case CDM::enumBolusAdministration::Intravenous:
-          out = SEBolusAdministration::Intravenous;
-          break;
-        default:
-          out = SEBolusAdministration::Invalid;
-          break;
-      }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+      case CDM::enumBolusAdministration::Intraarterial:
+        out = SEBolusAdministration::Intraarterial;
+        break;
+      case CDM::enumBolusAdministration::Intramuscular:
+        out = SEBolusAdministration::Intramuscular;
+        break;
+      case CDM::enumBolusAdministration::Intravenous:
+        out = SEBolusAdministration::Intravenous;
+        break;
+      default:
         out = SEBolusAdministration::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SEBolusAdministration::Invalid;
     }
   }
   void PatientActions::Marshall(const SEBolusAdministration& in, CDM::enumBolusAdministration& out)
@@ -1688,7 +1697,7 @@ out = "";
       out = CDM::enumBolusAdministration::Intravenous;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }
@@ -1697,21 +1706,21 @@ out = "";
   {
     try {
       switch (in) {
-        case CDM::enumBurnDegree::First:
-          out = SEBurnDegree::First;
-          break;
-        case CDM::enumBurnDegree::Second:
-          out = SEBurnDegree::Second;
-          break;
-        case CDM::enumBurnDegree::Third:
-          out = SEBurnDegree::Third;
-          break;
-        default:
-          out = SEBurnDegree::Invalid;
-          break;
-      }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+      case CDM::enumBurnDegree::First:
+        out = SEBurnDegree::First;
+        break;
+      case CDM::enumBurnDegree::Second:
+        out = SEBurnDegree::Second;
+        break;
+      case CDM::enumBurnDegree::Third:
+        out = SEBurnDegree::Third;
+        break;
+      default:
         out = SEBurnDegree::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SEBurnDegree::Invalid;
     }
   }
   void PatientActions::Marshall(const SEBurnDegree& in, CDM::enumBurnDegree& out)
@@ -1727,7 +1736,7 @@ out = "";
       out = CDM::enumBurnDegree::Third;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }
@@ -1736,24 +1745,24 @@ out = "";
   {
     try {
       switch (in) {
-        case CDM::enumInfectionSeverity::Eliminated:
-          out = SEInfectionSeverity::Eliminated;
-          break;
-        case CDM::enumInfectionSeverity::Mild:
-          out = SEInfectionSeverity::Mild;
-          break;
-        case CDM::enumInfectionSeverity::Moderate:
-          out = SEInfectionSeverity::Moderate;
-          break;
-        case CDM::enumInfectionSeverity::Severe:
-          out = SEInfectionSeverity::Severe;
-          break;
-        default:
-          out = SEInfectionSeverity::Invalid;
-          break;
-      }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+      case CDM::enumInfectionSeverity::Eliminated:
+        out = SEInfectionSeverity::Eliminated;
+        break;
+      case CDM::enumInfectionSeverity::Mild:
+        out = SEInfectionSeverity::Mild;
+        break;
+      case CDM::enumInfectionSeverity::Moderate:
+        out = SEInfectionSeverity::Moderate;
+        break;
+      case CDM::enumInfectionSeverity::Severe:
+        out = SEInfectionSeverity::Severe;
+        break;
+      default:
         out = SEInfectionSeverity::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SEInfectionSeverity::Invalid;
     }
   }
   void PatientActions::Marshall(const SEInfectionSeverity& in, CDM::enumInfectionSeverity& out)
@@ -1772,7 +1781,7 @@ out = "";
       out = CDM::enumInfectionSeverity::Severe;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }
@@ -1781,24 +1790,24 @@ out = "";
   {
     try {
       switch (in) {
-        case CDM::enumIntubationType::Esophageal:
-          out = SEIntubationType::Esophageal;
-          break;
-        case CDM::enumIntubationType::LeftMainstem:
-          out = SEIntubationType::LeftMainstem;
-          break;
-        case CDM::enumIntubationType::RightMainstem:
-          out = SEIntubationType::RightMainstem;
-          break;
-        case CDM::enumIntubationType::Tracheal:
-          out = SEIntubationType::Tracheal;
-          break;
-        default:
-          out = SEIntubationType::Invalid;
-          break;
-      }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+      case CDM::enumIntubationType::Esophageal:
+        out = SEIntubationType::Esophageal;
+        break;
+      case CDM::enumIntubationType::LeftMainstem:
+        out = SEIntubationType::LeftMainstem;
+        break;
+      case CDM::enumIntubationType::RightMainstem:
+        out = SEIntubationType::RightMainstem;
+        break;
+      case CDM::enumIntubationType::Tracheal:
+        out = SEIntubationType::Tracheal;
+        break;
+      default:
         out = SEIntubationType::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SEIntubationType::Invalid;
     }
   }
   void PatientActions::Marshall(const SEIntubationType& in, CDM::enumIntubationType& out)
@@ -1817,7 +1826,7 @@ out = "";
       out = CDM::enumIntubationType::Tracheal;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }
@@ -1826,36 +1835,36 @@ out = "";
   {
     try {
       switch (in) {
-        case CDM::enumPatientAssessment::ArterialBloodGasAnalysis:
-          out = SEPatientAssessmentType::ArterialBloodGasAnalysis;
-          break;
-        case CDM::enumPatientAssessment::PulmonaryFunctionTest:
-          out = SEPatientAssessmentType::PulmonaryFunctionTest;
-          break;
-        case CDM::enumPatientAssessment::ProthrombinTime:
-          out = SEPatientAssessmentType::ProthrombinTime;
-          break;
-        case CDM::enumPatientAssessment::PsychomotorVigilanceTask:
-          out = SEPatientAssessmentType::PsychomotorVigilanceTask;
-          break;
-        case CDM::enumPatientAssessment::CompleteBloodCount:
-          out = SEPatientAssessmentType::CompleteBloodCount;
-          break;
-        case CDM::enumPatientAssessment::ComprehensiveMetabolicPanel:
-          out = SEPatientAssessmentType::ComprehensiveMetabolicPanel;
-          break;
-        case CDM::enumPatientAssessment::SequentialOrganFailureAssessment:
-          out = SEPatientAssessmentType::SequentialOrganFailureAssessment;
-          break;
-        case CDM::enumPatientAssessment::Urinalysis:
-          out = SEPatientAssessmentType::Urinalysis;
-          break;
-        default:
-          out = SEPatientAssessmentType::Invalid;
-          break;
-      }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+      case CDM::enumPatientAssessment::ArterialBloodGasAnalysis:
+        out = SEPatientAssessmentType::ArterialBloodGasAnalysis;
+        break;
+      case CDM::enumPatientAssessment::PulmonaryFunctionTest:
+        out = SEPatientAssessmentType::PulmonaryFunctionTest;
+        break;
+      case CDM::enumPatientAssessment::ProthrombinTime:
+        out = SEPatientAssessmentType::ProthrombinTime;
+        break;
+      case CDM::enumPatientAssessment::PsychomotorVigilanceTask:
+        out = SEPatientAssessmentType::PsychomotorVigilanceTask;
+        break;
+      case CDM::enumPatientAssessment::CompleteBloodCount:
+        out = SEPatientAssessmentType::CompleteBloodCount;
+        break;
+      case CDM::enumPatientAssessment::ComprehensiveMetabolicPanel:
+        out = SEPatientAssessmentType::ComprehensiveMetabolicPanel;
+        break;
+      case CDM::enumPatientAssessment::SequentialOrganFailureAssessment:
+        out = SEPatientAssessmentType::SequentialOrganFailureAssessment;
+        break;
+      case CDM::enumPatientAssessment::Urinalysis:
+        out = SEPatientAssessmentType::Urinalysis;
+        break;
+      default:
         out = SEPatientAssessmentType::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SEPatientAssessmentType::Invalid;
     }
   }
   void PatientActions::Marshall(const SEPatientAssessmentType& in, CDM::enumPatientAssessment& out)
@@ -1886,7 +1895,7 @@ out = "";
       out = CDM::enumPatientAssessment::Urinalysis;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }
@@ -1895,18 +1904,18 @@ out = "";
   {
     try {
       switch (in) {
-        case CDM::enumPneumothoraxType::Open:
-          out = SEPneumothoraxType::Open;
-          break;
-        case CDM::enumPneumothoraxType::Closed:
-          out = SEPneumothoraxType::Closed;
-          break;
-        default:
-          out = SEPneumothoraxType::Invalid;
-          break;
-      }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+      case CDM::enumPneumothoraxType::Open:
+        out = SEPneumothoraxType::Open;
+        break;
+      case CDM::enumPneumothoraxType::Closed:
+        out = SEPneumothoraxType::Closed;
+        break;
+      default:
         out = SEPneumothoraxType::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SEPneumothoraxType::Invalid;
     }
   }
   void PatientActions::Marshall(const SEPneumothoraxType& in, CDM::enumPneumothoraxType& out)
@@ -1919,27 +1928,27 @@ out = "";
       out = CDM::enumPneumothoraxType::Closed;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }
   // SEOralAdministrationType
   void PatientActions::UnMarshall(const CDM::enumOralAdministration in, SEOralAdministrationType& out)
   {
-    try{
-    switch (in) {
-    case CDM::enumOralAdministration::Transmucosal:
-      out = SEOralAdministrationType::Transmucosal;
-      break;
-    case CDM::enumOralAdministration::Gastrointestinal:
-      out = SEOralAdministrationType::Gastrointestinal;
-      break;
-    default:
-      out = SEOralAdministrationType::Invalid;
-      break;
-    }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+    try {
+      switch (in) {
+      case CDM::enumOralAdministration::Transmucosal:
+        out = SEOralAdministrationType::Transmucosal;
+        break;
+      case CDM::enumOralAdministration::Gastrointestinal:
+        out = SEOralAdministrationType::Gastrointestinal;
+        break;
+      default:
         out = SEOralAdministrationType::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SEOralAdministrationType::Invalid;
     }
   }
   void PatientActions::Marshall(const SEOralAdministrationType& in, CDM::enumOralAdministration& out)
@@ -1952,30 +1961,30 @@ out = "";
       out = CDM::enumOralAdministration::Gastrointestinal;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }
   //  SETourniquetApplicationType
   void PatientActions::UnMarshall(const CDM::enumTourniquetApplicationLevel& in, SETourniquetApplicationType& out)
   {
-    try{
+    try {
       switch (in) {
-        case CDM::enumTourniquetApplicationLevel::Applied:
-          out = SETourniquetApplicationType::Applied;
-          break;
-        case CDM::enumTourniquetApplicationLevel::Misapplied:
-          out = SETourniquetApplicationType::Misapplied;
-          break;
-        case CDM::enumTourniquetApplicationLevel::None:
-          out = SETourniquetApplicationType::NotApplied;
-          break;
-        default:
-          out = SETourniquetApplicationType::Invalid;
-          break;
-      }
-    } catch ( xsd::cxx::tree::unexpected_enumerator<char> ) {
+      case CDM::enumTourniquetApplicationLevel::Applied:
+        out = SETourniquetApplicationType::Applied;
+        break;
+      case CDM::enumTourniquetApplicationLevel::Misapplied:
+        out = SETourniquetApplicationType::Misapplied;
+        break;
+      case CDM::enumTourniquetApplicationLevel::None:
+        out = SETourniquetApplicationType::NotApplied;
+        break;
+      default:
         out = SETourniquetApplicationType::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SETourniquetApplicationType::Invalid;
     }
   }
   void PatientActions::Marshall(const SETourniquetApplicationType& in, CDM::enumTourniquetApplicationLevel& out)
@@ -1991,7 +2000,7 @@ out = "";
       out = CDM::enumTourniquetApplicationLevel::None;
       break;
     default:
-out = "";
+      out = "";
       break;
     }
   }

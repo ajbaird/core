@@ -50,6 +50,38 @@ namespace io {
 
   void Scenario::UnMarshall(const CDM::ScenarioData& in, SEScenario& out)
   {
+
+    auto loadActions = [](SEScenario& scenario, CDM::ActionListData const* actionList) {
+      std::unique_ptr<std::seed_seq> seed;
+      std::random_device random_device;
+      std::unique_ptr<std::default_random_engine> default_random_engine;
+
+      if (actionList->RandomSeed().present() && actionList->RandomSeed().get().seed().size() != 0) {
+        auto seeds = actionList->RandomSeed().get().seed();
+        seed = std::make_unique<std::seed_seq>(seeds.begin(), seeds.end());
+        default_random_engine = std::make_unique<std::default_random_engine>(*seed);
+
+        std::stringstream ss;
+        ss << "Using seed={";
+        for (auto& seed : actionList->RandomSeed().get().seed()) {
+          ss << seed << ", ";
+        }
+        ss.seekp(-2, ss.cur);
+        ss << "}" << std::endl;
+        scenario.m_Logger->Warning(ss.str());
+      } else {
+        seed.reset(new std::seed_seq { random_device(), random_device(), random_device(), random_device(), random_device() });
+        default_random_engine = std::make_unique<std::default_random_engine>(*seed);
+      }
+
+      for (auto& action : actionList->Action()) {
+        auto new_action = PatientActions::factory(&action, scenario.m_SubMgr, default_random_engine.get());
+        if (new_action != nullptr) {
+          scenario.m_Actions.push_back(new_action.release());
+        }
+      }
+    };
+
     out.Clear();
     if (in.Name().present()) {
       out.m_Name = in.Name().get();
@@ -67,9 +99,28 @@ namespace io {
     if (in.AutoSerialization().present()) {
       UnMarshall(in.AutoSerialization(), out.GetAutoSerialization());
     }
+
     if (in.DataRequests().present()) {
-      DataRequests::UnMarshall(in.DataRequests().get(), out.m_SubMgr, out.m_DataRequestMgr);
+      auto dataRequests = in.DataRequests().get();
+      if (dataRequests.DataRequestFile().present()) {
+        biogears::filesystem::path requestFile = in.DataRequests()->DataRequestFile().get();
+        auto weak_io = out.GetLogger()->GetIoManager();
+        auto iom = weak_io.lock();
+
+        if (requestFile.exists()) {
+          auto sData = Serializer::ReadFile(requestFile.ToString(), out.GetLogger());
+          if (auto requestManagerData = dynamic_cast<CDM::DataRequestManagerData*>(sData.get())) {
+            // We are ignoring recursive DataRequestManagerData where an DataRequestManagerData has an DataRequestFile reference
+            DataRequests::UnMarshall(*requestManagerData, out.m_SubMgr, out.m_DataRequestMgr);
+          }
+        } else {
+          throw CommonDataModelException("Can not find " + requestFile.ToString());
+        }
+      } else {
+        DataRequests::UnMarshall(dataRequests, out.m_SubMgr, out.m_DataRequestMgr);
+      }
     }
+
     if (in.Actions().ActionFile().present()) {
       biogears::filesystem::path actionFile = in.Actions().ActionFile().get();
       auto weak_io = out.GetLogger()->GetIoManager();
@@ -79,24 +130,17 @@ namespace io {
         auto sData = Serializer::ReadFile(actionFile.ToString(), out.GetLogger());
         if (auto actionList = dynamic_cast<CDM::ActionListData*>(sData.get())) {
           // We are ignoring recursive ActionListData where an ActionListData has an ActionFile reference
-          for (auto& action : actionList->Action()) {
-            auto new_action = PatientActions::factory(&action, out.m_SubMgr);
-            if (new_action != nullptr) {
-              out.m_Actions.push_back(new_action.release());
-            }
-          }
+          loadActions(out, actionList);
+        } else {
+          throw CommonDataModelException("Unable to load " + actionFile.ToString() + "File is not ofrmated properly.");
         }
       } else {
         throw CommonDataModelException("Can not find " + actionFile.ToString());
       }
     } else {
-      for (auto& action : in.Actions().Action()) {
-        auto new_action = PatientActions::factory(&action, out.m_SubMgr);
-        if (new_action != nullptr) {
-          out.m_Actions.push_back(new_action.release());
-        }
-      }
+      loadActions(out, &in.Actions());
     }
+
     if (!out.IsValid()) {
       throw CommonDataModelException("Unable UnMarshall SEScenario from ScenarioData");
     }
@@ -104,6 +148,7 @@ namespace io {
 
   void Scenario::Marshall(const SEScenario& in, CDM::ScenarioData& out)
   {
+
     out.Name(in.m_Name);
     out.Description(in.m_Description);
     if (in.HasEngineStateFile()) {
@@ -112,10 +157,12 @@ namespace io {
       out.InitialParameters(std::make_unique<CDM::ScenarioInitialParametersData>());
       Marshall(*in.m_InitialParameters, out.InitialParameters());
     }
+
     if (in.HasAutoSerialization()) {
       out.AutoSerialization(std::make_unique<CDM::ScenarioAutoSerializationData>());
       Marshall(*in.m_AutoSerialization, out.AutoSerialization());
     }
+
     out.DataRequests(std::unique_ptr<CDM::DataRequestManagerData>(in.m_DataRequestMgr.Unload()));
 
     out.Actions(std::make_unique<CDM::ActionListData>());
