@@ -285,11 +285,9 @@ bool BioGears::SetupPatient()
   }
   age_yr = m_Patient->GetAge().GetValue(TimeUnit::yr);
   if (age_yr < ageMin_yr) {
-    Error(asprintf("Patient age of %f years is too young. We do not model pediatrics. Minimum age allowed is %f years.", age_yr, ageMin_yr));
-    err = true;
+    Warning(asprintf("Patient age of %f years is too young. We do not model pediatrics. Minimum age allowed is %f years.", age_yr, ageMin_yr));
   } else if (age_yr > ageMax_yr) {
-    Error(asprintf("Patient age of %f years is too old. We do not model geriatrics. Maximum age allowed is %f years.", age_yr, ageMax_yr));
-    err = true;
+    Warning(asprintf("Patient age of %f years is too old. We do not model geriatrics. Maximum age allowed is %f years.", age_yr, ageMax_yr));
   }
 
   // PAIN SUSCEPTIBILITY -----------------------------------------------------------------------------------
@@ -332,12 +330,15 @@ bool BioGears::SetupPatient()
   //Male
   double heightMin_cm = heightMinMale_cm;
   double heightMax_cm = heightMaxMale_cm;
-  double heightStandard_cm = heightStandardMale_cm;
+  double age = m_Patient->GetAge().GetValue(TimeUnit::yr);
+  double heightStandard_cm = 177 / (1+exp(-0.25*(age-2)));   //H(t)= 177/(1 + e −0.25(t-2)) is one option to evaluate ​
+
   if (m_Patient->GetSex() == SESex::Female) {
     //Female
     heightMin_cm = heightMinFemale_cm;
     heightMax_cm = heightMaxFemale_cm;
-    heightStandard_cm = heightStandardFemale_cm;
+    //\TODO: should include variance in total heigh and growth
+    heightStandard_cm = 163 / (1 + exp(-0.3 * (age - 2))); //H(t)= 163/(1 + e −0.3(t−2)) this assumes half heigh at 2, 
   }
   if (!m_Patient->HasHeight()) {
     m_Patient->GetHeight().SetValue(heightStandard_cm, LengthUnit::cm);
@@ -347,8 +348,7 @@ bool BioGears::SetupPatient()
   double height_ft = Convert(height_cm, LengthUnit::cm, LengthUnit::ft);
   //Check for outrageous values
   if (height_ft < 4.5 || height_ft > 7.0) {
-    Error("Patient height setting is outrageous. It must be between 4.5 and 7.0 ft");
-    err = true;
+    Warning("Patient height setting is outrageous. It must be between 4.5 and 7.0 ft");
   }
   if (height_cm < heightMin_cm) {
     Warning(asprintf("Patient height of %f cm is outside of typical ranges - below 3rd percentile (%f cm). No guarantees of model validity.", height_cm, heightMax_cm));
@@ -672,7 +672,7 @@ bool BioGears::SetupPatient()
   }
 
   double residualVolume_L;
-  double computRedesidualVolume_L = 20.0 * weight_kg / 1000.0;
+  double computRedesidualVolume_L = 20.0 * weight_kg / 1000.0;  //need to scale this by age
   if (!m_Patient->HasResidualVolume()) {
     residualVolume_L = computRedesidualVolume_L;
     m_Patient->GetResidualVolume().SetValue(residualVolume_L, VolumeUnit::L);
