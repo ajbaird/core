@@ -79,6 +79,14 @@ enum class SEOralAdministrationType {
   Gastrointestinal
 };
 
+enum class SESCILocation {
+  Invalid = -1,
+  Cervical = 0,
+  UpperThoracic,
+  LowerThoracic,
+  Lumbar
+};
+
 enum class SETourniquetApplicationType {
   Invalid = -1,
   Applied = 0,

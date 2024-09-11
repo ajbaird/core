@@ -1,0 +1,146 @@
+/**************************************************************************************
+Copyright 2015 Applied Research Associates, Inc.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the License
+at:
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+**************************************************************************************/
+
+#include <biogears/cdm/patient/actions/SESpinalCordInjury.h>
+
+#include "io/cdm/PatientActions.h"
+
+namespace biogears {
+SESpinalCordInjury::SETourniquet()
+  : SEPatientAction()
+{
+  m_Compartment = ""; //User input, location of Tourniquet
+  m_TourniquetLevel = SETourniquetApplicationType::Invalid;
+}
+//-----------------------------------------------------------------------------
+SETourniquet::~SETourniquet()
+{
+  Clear();
+}
+//-----------------------------------------------------------------------------
+void SETourniquet::Clear()
+{
+  SEPatientAction::Clear();
+  m_Compartment = "";
+  m_TourniquetLevel = SETourniquetApplicationType::Invalid;
+}
+//-----------------------------------------------------------------------------
+bool SETourniquet::IsValid() const
+{
+  const std::vector<std::string> validCmpts { "LeftArm", "LeftLeg", "RightArm", "RightLeg" };
+  return SEPatientAction::IsValid() && HasCompartment() && HasTourniquetLevel()
+    && std::find(validCmpts.begin(), validCmpts.end(), GetCompartment()) != validCmpts.end();
+}
+//-----------------------------------------------------------------------------
+bool SETourniquet::IsActive() const
+{
+  return IsValid() ? !(m_TourniquetLevel == (SETourniquetApplicationType::NotApplied)) : false;
+} //-----------------------------------------------------------------------------
+bool SETourniquet::Load(const CDM::TourniquetData& in, std::default_random_engine* rd)
+{
+  io::PatientActions::UnMarshall(in, *this, rd);
+  return true;
+}
+//-----------------------------------------------------------------------------
+CDM::TourniquetData* SETourniquet::Unload() const
+{
+  CDM::TourniquetData* data(new CDM::TourniquetData());
+  Unload(*data);
+  return data;
+}
+//-----------------------------------------------------------------------------
+void SETourniquet::Unload(CDM::TourniquetData& data) const
+{
+  io::PatientActions::Marshall(*this, data);
+}
+//-----------------------------------------------------------------------------
+const char* SETourniquet::GetCompartment_cStr() const
+{
+  return m_Compartment.c_str();
+}
+//-----------------------------------------------------------------------------
+std::string SETourniquet::GetCompartment() const
+{
+  return m_Compartment;
+}
+//-----------------------------------------------------------------------------
+bool SETourniquet::HasCompartment() const
+{
+  return !m_Compartment.empty();
+}
+//-----------------------------------------------------------------------------
+void SETourniquet::SetCompartment(const char* name)
+{
+  return SetCompartment(std::string { name });
+}
+//-----------------------------------------------------------------------------
+void SETourniquet::SetCompartment(const std::string& name)
+{
+  m_Compartment = name;
+}
+//-----------------------------------------------------------------------------
+void SETourniquet::InvalidateCompartment()
+{
+  m_Compartment = "";
+}
+//-----------------------------------------------------------------------------
+bool SETourniquet::HasTourniquetLevel() const
+{
+  return m_TourniquetLevel == SETourniquetApplicationType::Invalid ? false : true;
+}
+//-----------------------------------------------------------------------------
+SETourniquetApplicationType SETourniquet::GetTourniquetLevel()
+{
+  return m_TourniquetLevel;
+}
+//-----------------------------------------------------------------------------
+void SETourniquet::SetTourniquetLevel(SETourniquetApplicationType level)
+{
+  m_TourniquetLevel = level;
+}
+//-----------------------------------------------------------------------------
+void SETourniquet::ToString(std::ostream& str) const
+{
+  if (m_TourniquetLevel == SETourniquetApplicationType::NotApplied) {
+    str << "Patient Action : Remove tourniquet";
+    if (HasComment())
+      str << "\n\tComment: ";
+    str << m_Comment;
+    str << "\n\tCompartment: ";
+    HasCompartment() ? str << GetCompartment() : str << "No Compartment Set";
+  } else {
+    str << "Patient Action : Tourniquet";
+    if (HasComment())
+      str << "\n\tComment: " << m_Comment;
+    str << "\n\tApplication Level:  ";
+    str << m_TourniquetLevel;
+    str << "\n\tCompartment: ";
+    HasCompartment() ? str << GetCompartment() : str << "No Compartment Set";
+  }
+  str << std::flush;
+}
+//-----------------------------------------------------------------------------
+bool SETourniquet::operator==(const SETourniquet& rhs) const
+{
+  return m_Comment == rhs.m_Comment
+    && m_Compartment == rhs.m_Compartment
+    && m_TourniquetLevel == rhs.m_TourniquetLevel;
+}
+//-----------------------------------------------------------------------------
+bool SETourniquet::operator!=(const SETourniquet& rhs) const
+{
+  return !(*this == rhs);
+}
+
+}
+
+//-----------------------------------------------------------------------------

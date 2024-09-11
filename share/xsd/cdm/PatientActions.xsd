@@ -605,6 +605,26 @@ specific language governing permissions and limitations under the License.
     </xs:complexContent>
   </xs:complexType>
 
+  <!-- @brief locations along the spine-->
+  <xs:simpleType name="enumSCILocation">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Cervical"/>
+      <xs:enumeration value="UpperThoracic"/>
+      <xs:enumeration value="LowerThoracic"/>
+      <xs:enumeration value="Lumbar"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!--@brief A spinal cord injury wound, location determines effect-->
+  <xs:complexType name="SpinalCordInjuryData">
+    <xs:complexContent>
+      <xs:extension base="PatientActionData">
+        <xs:sequence>
+          <xs:element name="Location" type="enumSCILocation" use="required"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <!-- @brief Various methods of substance administration. Currently unsupported methods are commented out.-->
   <xs:simpleType name="enumBolusAdministration">
     <xs:restriction base="xs:string">
