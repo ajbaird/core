@@ -85,6 +85,7 @@ class SEPulmonaryShunt;
 class SERadiationAbsorbedDose;
 class SETensionPneumothorax;
 class SESleep;
+class SESpinalCordInjury;
 class SESubstanceAdministration;
 class SESubstanceBolus;
 class SESubstanceBolusState;
@@ -228,6 +229,9 @@ namespace io {
     // class SESleep;
     static void UnMarshall(const CDM::SleepData& in, SESleep& out, std::default_random_engine* rd = nullptr);
     static void Marshall(const SESleep& in, CDM::SleepData& out);
+    // class SESpinalCordInjury;
+    static void UnMarshall(const CDM::SpinalCordInjuryData& in, SESpinalCordInjury& out, std::default_random_engine* rd = nullptr);
+    static void Marshall(const SESpinalCordInjury& in, CDM::SpinalCordInjuryData& out);
     // class SESubstanceNasalDose;
     static void UnMarshall(const CDM::SubstanceNasalDoseData& in, SESubstanceNasalDose& out, std::default_random_engine* rd = nullptr);
     static void Marshall(const SESubstanceNasalDose& in, CDM::SubstanceNasalDoseData& out);
@@ -334,6 +338,7 @@ bool operator==(CDM::enumIntubationType const& lhs, SEIntubationType const& rhs)
 bool operator==(CDM::enumPatientAssessment const& lhs, SEPatientAssessmentType const& rhs);
 bool operator==(CDM::enumPneumothoraxType const& lhs, SEPneumothoraxType const& rhs);
 bool operator==(CDM::enumOralAdministration const& lhs, SEOralAdministrationType const& rhs);
+bool operator==(CDM::enumSCILocation const& lhs, SESCILocationType const& rhs);
 bool operator==(CDM::enumTourniquetApplicationLevel const& lhs, SETourniquetApplicationType const& rhs);
 
 inline bool operator==(SEBrainInjuryType const& lhs, CDM::enumBrainInjuryType const& rhs)
@@ -368,11 +373,14 @@ inline bool operator==(SEOralAdministrationType const& lhs, CDM::enumOralAdminis
 {
   return rhs == lhs;
 }
+inline bool operator==(SESpinalCordInjury const& lhs, CDM::enumSCILocation const& rhs)
+{
+  return rhs == lhs;
+}
 inline bool operator==(SETourniquetApplicationType const& lhs, CDM::enumTourniquetApplicationLevel const& rhs)
 {
   return rhs == lhs;
 }
-
 inline bool operator!=(CDM::enumBrainInjuryType const& lhs, SEBrainInjuryType const& rhs)
 {
   return !(lhs == rhs);
@@ -404,6 +412,10 @@ inline bool operator!=(CDM::enumPneumothoraxType const& lhs, SEPneumothoraxType 
 inline bool operator!=(CDM::enumOralAdministration const& lhs, SEOralAdministrationType const& rhs)
 {
   return !(lhs == rhs);
+}
+inline bool operator!=(SESpinalCordInjury const& lhs, CDM::enumSCILocation const& rhs)
+{
+  return rhs == lhs;
 }
 inline bool operator!=(CDM::enumTourniquetApplicationLevel const& lhs, SETourniquetApplicationType const& rhs)
 {
@@ -439,6 +451,10 @@ inline bool operator!=(SEPneumothoraxType const& lhs, CDM::enumPneumothoraxType 
   return !(rhs == lhs);
 }
 inline bool operator!=(SEOralAdministrationType const& lhs, CDM::enumOralAdministration const& rhs)
+{
+  return !(rhs == lhs);
+}
+inline bool operator!=(SESpinalCordInjury const& lhs, CDM::enumSCILocation const& rhs)
 {
   return !(rhs == lhs);
 }

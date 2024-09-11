@@ -79,7 +79,7 @@ enum class SEOralAdministrationType {
   Gastrointestinal
 };
 
-enum class SESCILocation {
+enum class SESCILocationType {
   Invalid = -1,
   Cervical = 0,
   UpperThoracic,
@@ -213,6 +213,23 @@ inline std::string ToString(const SEOralAdministrationType& pt)
     return "Invalid";
   }
 }
+inline std::string ToString(const SESCILocationType& st)
+{
+  switch (st) {
+  case SESCILocationType::Invalid:
+    return "Invalid";
+  case SESCILocationType::Cervical:
+    return "Cervical";
+  case SESCILocationType::UpperThoracic:
+    return "UpperThoracic";
+  case SESCILocationType::LowerThoracic:
+    return "LowerThoracic";
+  case SESCILocationType::Lumbar:
+    return "Lumbar";
+  default:
+    return "Invalid";
+  }
+}
 inline std::string ToString(const SETourniquetApplicationType& pt)
 {
   switch (pt) {
@@ -265,6 +282,11 @@ inline std::ostream& operator<<(std::ostream& os, const SEPneumothoraxType& pt)
 inline std::ostream& operator<<(std::ostream& os, const SEOralAdministrationType& pt)
 {
   os << ToString(pt);
+  return os;
+}
+inline std::ostream& operator<<(std::ostream& os, const SESCILocationType& st)
+{
+  os << ToString(st);
   return os;
 }
 inline std::ostream& operator<<(std::ostream& os, const SETourniquetApplicationType& pt)

@@ -59,6 +59,7 @@
 #include <biogears/cdm/patient/actions/SEPupillaryResponse.h>
 #include <biogears/cdm/patient/actions/SERadiationAbsorbedDose.h>
 #include <biogears/cdm/patient/actions/SESleep.h>
+#include <biogears/cdm/patient/actions/SESpinalCordInjury.h>
 #include <biogears/cdm/patient/actions/SESubstanceBolus.h>
 #include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
 #include <biogears/cdm/patient/actions/SESubstanceInfusion.h>
@@ -1419,6 +1420,21 @@ namespace io {
   //----------------------------------------------------------------------------------
   // class SESleep
   void PatientActions::UnMarshall(const CDM::SleepData& in, SESleep& out, std::default_random_engine* rd)
+  {
+    out.Clear();
+
+    PatientActions::UnMarshall(static_cast<const CDM::PatientActionData&>(in), static_cast<SEPatientAction&>(out));
+    Property::UnMarshall(in.Sleep(), out.m_SleepState);
+  }
+  void PatientActions::Marshall(const SESleep& in, CDM::SleepData& out)
+  {
+    PatientActions::Marshall(static_cast<const SEPatientAction&>(in), static_cast<CDM::PatientActionData&>(out));
+    out.Sleep(std::make_unique<std::remove_reference<decltype(out.Sleep())>::type>());
+    Property::Marshall(in.m_SleepState, out.Sleep());
+  }
+  //----------------------------------------------------------------------------------
+  // class SESpinalCordInjury
+  void PatientActions::UnMarshall(const CDM::SpinalCordInjuryData& in, SESleep& out, std::default_random_engine* rd)
   {
     out.Clear();
 

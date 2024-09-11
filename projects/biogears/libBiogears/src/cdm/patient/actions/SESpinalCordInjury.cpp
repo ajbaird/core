@@ -15,23 +15,21 @@ specific language governing permissions and limitations under the License.
 #include "io/cdm/PatientActions.h"
 
 namespace biogears {
-SESpinalCordInjury::SETourniquet()
+SESpinalCordInjury::SESpinalCordInjury()
   : SEPatientAction()
 {
-  m_Compartment = ""; //User input, location of Tourniquet
-  m_TourniquetLevel = SETourniquetApplicationType::Invalid;
+  m_Location = SESCILocation::Invalid;
 }
 //-----------------------------------------------------------------------------
-SETourniquet::~SETourniquet()
+SESpinalCordInjury::~SESpinalCordInjury()
 {
   Clear();
 }
 //-----------------------------------------------------------------------------
-void SETourniquet::Clear()
+void SESpinalCordInjury::Clear()
 {
   SEPatientAction::Clear();
-  m_Compartment = "";
-  m_TourniquetLevel = SETourniquetApplicationType::Invalid;
+  m_Location = SESCILocation::Invalid;
 }
 //-----------------------------------------------------------------------------
 bool SETourniquet::IsValid() const
