@@ -18,7 +18,7 @@ namespace biogears {
 SESpinalCordInjury::SESpinalCordInjury()
   : SEPatientAction()
 {
-  m_Location = SESCILocation::Invalid;
+  m_Location = SESCILocationType::Invalid;
 }
 //-----------------------------------------------------------------------------
 SESpinalCordInjury::~SESpinalCordInjury()
@@ -29,112 +29,84 @@ SESpinalCordInjury::~SESpinalCordInjury()
 void SESpinalCordInjury::Clear()
 {
   SEPatientAction::Clear();
-  m_Location = SESCILocation::Invalid;
+  m_Location = SESCILocationType::Invalid;
 }
 //-----------------------------------------------------------------------------
-bool SETourniquet::IsValid() const
+bool SESpinalCordInjury::IsValid() const
 {
-  const std::vector<std::string> validCmpts { "LeftArm", "LeftLeg", "RightArm", "RightLeg" };
-  return SEPatientAction::IsValid() && HasCompartment() && HasTourniquetLevel()
-    && std::find(validCmpts.begin(), validCmpts.end(), GetCompartment()) != validCmpts.end();
+  return SEPatientAction::IsValid() && HasLocation();
 }
 //-----------------------------------------------------------------------------
-bool SETourniquet::IsActive() const
+bool SESpinalCordInjury::IsActive() const
 {
-  return IsValid() ? !(m_TourniquetLevel == (SETourniquetApplicationType::NotApplied)) : false;
+  return IsValid() ? !(m_Location == (SESCILocationType::Invalid)) : false;
 } //-----------------------------------------------------------------------------
-bool SETourniquet::Load(const CDM::TourniquetData& in, std::default_random_engine* rd)
+bool SESpinalCordInjury::Load(const CDM::SpinalCordInjuryData& in, std::default_random_engine* rd)
 {
   io::PatientActions::UnMarshall(in, *this, rd);
   return true;
 }
 //-----------------------------------------------------------------------------
-CDM::TourniquetData* SETourniquet::Unload() const
+CDM::SpinalCordInjuryData* SESpinalCordInjury::Unload() const
 {
-  CDM::TourniquetData* data(new CDM::TourniquetData());
+  CDM::SpinalCordInjuryData* data(new CDM::SpinalCordInjuryData());
   Unload(*data);
   return data;
 }
 //-----------------------------------------------------------------------------
-void SETourniquet::Unload(CDM::TourniquetData& data) const
+void SESpinalCordInjury::Unload(CDM::SpinalCordInjuryData& data) const
 {
   io::PatientActions::Marshall(*this, data);
 }
 //-----------------------------------------------------------------------------
-const char* SETourniquet::GetCompartment_cStr() const
+SESCILocationType SESpinalCordInjury::GetLocation() const
 {
-  return m_Compartment.c_str();
+  return SESCILocationType();
 }
 //-----------------------------------------------------------------------------
-std::string SETourniquet::GetCompartment() const
+bool SESpinalCordInjury::HasLocation() const
 {
-  return m_Compartment;
+  return m_Location == SESCILocationType::Invalid ? false : true;
 }
 //-----------------------------------------------------------------------------
-bool SETourniquet::HasCompartment() const
+void SESpinalCordInjury::SetLocation(SESCILocationType location)
 {
-  return !m_Compartment.empty();
+  m_Location = location;
 }
 //-----------------------------------------------------------------------------
-void SETourniquet::SetCompartment(const char* name)
+void SESpinalCordInjury::InvalidateLocation()
 {
-  return SetCompartment(std::string { name });
+  m_Location = SESCILocationType::Invalid;
 }
 //-----------------------------------------------------------------------------
-void SETourniquet::SetCompartment(const std::string& name)
+void SESpinalCordInjury::ToString(std::ostream& str) const
 {
-  m_Compartment = name;
-}
-//-----------------------------------------------------------------------------
-void SETourniquet::InvalidateCompartment()
-{
-  m_Compartment = "";
-}
-//-----------------------------------------------------------------------------
-bool SETourniquet::HasTourniquetLevel() const
-{
-  return m_TourniquetLevel == SETourniquetApplicationType::Invalid ? false : true;
-}
-//-----------------------------------------------------------------------------
-SETourniquetApplicationType SETourniquet::GetTourniquetLevel()
-{
-  return m_TourniquetLevel;
-}
-//-----------------------------------------------------------------------------
-void SETourniquet::SetTourniquetLevel(SETourniquetApplicationType level)
-{
-  m_TourniquetLevel = level;
-}
-//-----------------------------------------------------------------------------
-void SETourniquet::ToString(std::ostream& str) const
-{
-  if (m_TourniquetLevel == SETourniquetApplicationType::NotApplied) {
-    str << "Patient Action : Remove tourniquet";
+  if (m_Location == SESCILocationType::Invalid) {
+    str << "Patient Action : Remove spinal cord injury";
     if (HasComment())
       str << "\n\tComment: ";
     str << m_Comment;
     str << "\n\tCompartment: ";
-    HasCompartment() ? str << GetCompartment() : str << "No Compartment Set";
+    HasLocation() ? str << GetLocation() : str << "No location Set";
   } else {
-    str << "Patient Action : Tourniquet";
+    str << "Patient Action : Spinal Cord Injury";
     if (HasComment())
       str << "\n\tComment: " << m_Comment;
-    str << "\n\tApplication Level:  ";
-    str << m_TourniquetLevel;
+    str << "\n\tLocation:  ";
+    str << m_Location;
     str << "\n\tCompartment: ";
-    HasCompartment() ? str << GetCompartment() : str << "No Compartment Set";
+    HasLocation() ? str << GetLocation() : str << "No location Set";
   }
   str << std::flush;
 }
 //-----------------------------------------------------------------------------
-bool SETourniquet::operator==(const SETourniquet& rhs) const
+bool SESpinalCordInjury::operator==(const SESpinalCordInjury& rhs) const
 {
   return m_Comment == rhs.m_Comment
-    && m_Compartment == rhs.m_Compartment
-    && m_TourniquetLevel == rhs.m_TourniquetLevel;
+    && m_Location == rhs.m_Location;
 }
 //-----------------------------------------------------------------------------
-bool SETourniquet::operator!=(const SETourniquet& rhs) const
+bool SESpinalCordInjury::operator!=(const SESpinalCordInjury& rhs) const
 {
   return !(*this == rhs);
 }

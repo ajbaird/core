@@ -293,6 +293,9 @@ namespace io {
     // SEOralAdministrationType
     static void UnMarshall(const CDM::enumOralAdministration in, SEOralAdministrationType& out);
     static void Marshall(const SEOralAdministrationType& in, CDM::enumOralAdministration& out);
+    // SESCILocationType
+    static void UnMarshall(const CDM::enumSCILocation& in, SESCILocationType& out);
+    static void Marshall(const SESCILocationType& in, CDM::enumSCILocation& out);
     //  SETourniquetApplicationType
     static void UnMarshall(const CDM::enumTourniquetApplicationLevel& in, SETourniquetApplicationType& out);
     static void Marshall(const SETourniquetApplicationType& in, CDM::enumTourniquetApplicationLevel& out);
@@ -373,7 +376,7 @@ inline bool operator==(SEOralAdministrationType const& lhs, CDM::enumOralAdminis
 {
   return rhs == lhs;
 }
-inline bool operator==(SESpinalCordInjury const& lhs, CDM::enumSCILocation const& rhs)
+inline bool operator==(SESCILocationType const& lhs, CDM::enumSCILocation const& rhs)
 {
   return rhs == lhs;
 }
@@ -413,10 +416,6 @@ inline bool operator!=(CDM::enumOralAdministration const& lhs, SEOralAdministrat
 {
   return !(lhs == rhs);
 }
-inline bool operator!=(SESpinalCordInjury const& lhs, CDM::enumSCILocation const& rhs)
-{
-  return rhs == lhs;
-}
 inline bool operator!=(CDM::enumTourniquetApplicationLevel const& lhs, SETourniquetApplicationType const& rhs)
 {
   return !(lhs == rhs);
@@ -451,10 +450,6 @@ inline bool operator!=(SEPneumothoraxType const& lhs, CDM::enumPneumothoraxType 
   return !(rhs == lhs);
 }
 inline bool operator!=(SEOralAdministrationType const& lhs, CDM::enumOralAdministration const& rhs)
-{
-  return !(rhs == lhs);
-}
-inline bool operator!=(SESpinalCordInjury const& lhs, CDM::enumSCILocation const& rhs)
 {
   return !(rhs == lhs);
 }

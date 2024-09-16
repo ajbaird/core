@@ -619,12 +619,11 @@ specific language governing permissions and limitations under the License.
   <xs:complexType name="SpinalCordInjuryData">
     <xs:complexContent>
       <xs:extension base="PatientActionData">
-        <xs:sequence>
-          <xs:element name="Location" type="enumSCILocation" use="required"/>
-        </xs:sequence>
+		  <xs:attribute name="Location" type="enumSCILocation" use="required"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+	
   <!-- @brief Various methods of substance administration. Currently unsupported methods are commented out.-->
   <xs:simpleType name="enumBolusAdministration">
     <xs:restriction base="xs:string">

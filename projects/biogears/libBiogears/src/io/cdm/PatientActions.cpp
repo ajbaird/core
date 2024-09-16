@@ -1434,18 +1434,17 @@ namespace io {
   }
   //----------------------------------------------------------------------------------
   // class SESpinalCordInjury
-  void PatientActions::UnMarshall(const CDM::SpinalCordInjuryData& in, SESleep& out, std::default_random_engine* rd)
+  void PatientActions::UnMarshall(const CDM::SpinalCordInjuryData& in, SESpinalCordInjury& out, std::default_random_engine* rd)
   {
     out.Clear();
 
     PatientActions::UnMarshall(static_cast<const CDM::PatientActionData&>(in), static_cast<SEPatientAction&>(out));
-    Property::UnMarshall(in.Sleep(), out.m_SleepState);
+    io::PatientActions::UnMarshall(in.Location(), out.m_Location);
   }
-  void PatientActions::Marshall(const SESleep& in, CDM::SleepData& out)
+  void PatientActions::Marshall(const SESpinalCordInjury& in, CDM::SpinalCordInjuryData& out)
   {
     PatientActions::Marshall(static_cast<const SEPatientAction&>(in), static_cast<CDM::PatientActionData&>(out));
-    out.Sleep(std::make_unique<std::remove_reference<decltype(out.Sleep())>::type>());
-    Property::Marshall(in.m_SleepState, out.Sleep());
+    SE_PATIENT_ACTIONS_ENUM_MARSHALL_HELPER(in, out, Location)
   }
   //----------------------------------------------------------------------------------
   // class SESubstanceAdministration
@@ -1995,6 +1994,53 @@ namespace io {
       break;
     }
   }
+  //  SESCILocationType
+  void PatientActions::UnMarshall(const CDM::enumSCILocation& in, SESCILocationType& out)
+  {
+    try {
+      switch (in) {
+      case CDM::enumSCILocation::Cervical:
+        out = SESCILocationType::Cervical;
+        break;
+      case CDM::enumSCILocation::UpperThoracic:
+        out = SESCILocationType::UpperThoracic;
+        break;
+      case CDM::enumSCILocation::LowerThoracic:
+        out = SESCILocationType::LowerThoracic;
+        break;
+      case CDM::enumSCILocation::Lumbar:
+        out = SESCILocationType::Lumbar;
+        break;
+      default:
+        out = SESCILocationType::Invalid;
+        break;
+      }
+    } catch (xsd::cxx::tree::unexpected_enumerator<char>) {
+      out = SESCILocationType::Invalid;
+    }
+  }
+  //  SESCILocationType
+  void PatientActions::Marshall(const SESCILocationType& in, CDM::enumSCILocation& out)
+  {
+     switch (in) {
+     case SESCILocationType::Cervical:
+       out = CDM::enumSCILocation::Cervical;
+       break;
+     case SESCILocationType::UpperThoracic:
+       out = CDM::enumSCILocation::UpperThoracic;
+       break;
+     case SESCILocationType::LowerThoracic:
+       out = CDM::enumSCILocation::LowerThoracic;
+       break;
+     case SESCILocationType::Lumbar:
+       out = CDM::enumSCILocation::Lumbar;
+       break;
+     default:
+       out = "";
+       break;
+      }
+  }
+  //----------------------------------------------------------------------------------
   //  SETourniquetApplicationType
   void PatientActions::UnMarshall(const CDM::enumTourniquetApplicationLevel& in, SETourniquetApplicationType& out)
   {
@@ -2167,6 +2213,21 @@ bool operator==(CDM::enumOralAdministration const& lhs, SEOralAdministrationType
     return (CDM::enumOralAdministration::Transmucosal == lhs);
   case SEOralAdministrationType::Invalid:
     return ((CDM::enumOralAdministration::value)-1 == lhs);
+  default:
+    return false;
+  }
+}
+bool operator==(CDM::enumSCILocation const& lhs, SESCILocationType const& rhs)
+{
+  switch (rhs) {
+  case SESCILocationType::Cervical:
+    return (CDM::enumSCILocation::Cervical == lhs);
+  case SESCILocationType::LowerThoracic:
+    return (CDM::enumSCILocation::LowerThoracic == lhs);
+  case SESCILocationType::UpperThoracic:
+    return (CDM::enumSCILocation::UpperThoracic == lhs);
+  case SESCILocationType::Lumbar:
+    return (CDM::enumSCILocation::Lumbar == lhs);
   default:
     return false;
   }

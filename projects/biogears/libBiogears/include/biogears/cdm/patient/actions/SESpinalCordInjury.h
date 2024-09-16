@@ -41,9 +41,9 @@ protected:
   virtual void Unload(CDM::SpinalCordInjuryData& data) const;
 
 public:
-  virtual SESCILocation GetLocation() const;
+  virtual SESCILocationType GetLocation() const;
   virtual bool HasLocation() const;
-  virtual void SetLocation(SESCILocation t);
+  virtual void SetLocation(SESCILocationType t);
   virtual void InvalidateLocation();
 
   virtual void ToString(std::ostream& str) const override;
@@ -52,6 +52,6 @@ public:
   bool operator!=(const SESpinalCordInjury& rhs) const;
 
 protected:
-  SESCILocation m_Location;
+  SESCILocationType m_Location;
 };
 }
